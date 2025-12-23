@@ -1,6 +1,0 @@
-name = "saniya-bot"
-main = "index.js"
-compatibility_date = "2025-12-01"
-
-[env.production]
-workers_dev = true
