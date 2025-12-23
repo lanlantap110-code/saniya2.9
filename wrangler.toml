@@ -3,11 +3,13 @@ main = "index.js"
 compatibility_date = "2025-12-01"
 compatibility_flags = ["nodejs_compat"]
 
-# ✅ Service Worker format specify करें
-upload.format = "service-worker"
+# ✅ ES Module format specify करें
+upload.format = "modules"
 
-# ✅ Remove environment conflicts (temporarily)
-# [env.production] और [env.staging] हटा दें
-
-account_id = "5e014ab8b61097283ed541ac6946a714"  # Your account ID
+# ✅ Single top-level environment
+account_id = "5e014ab8b61097283ed541ac6946a714"
 workers_dev = true
+
+# ✅ Remove all [env.*] sections (temporarily)
+# [env.production] हटा दें
+# [env.staging] हटा दें
