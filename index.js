@@ -1,3 +1,5 @@
+// ✅ ES MODULE FORMAT - Service Worker नहीं
+
 const BOT_TOKEN = '8252082049:AAHSBJ0NLTnMQ_75LuLTdYUbbD8A9x2gPa4';
 const AI_API_URL = 'https://ai-2fghunkw.vercel.app/query?question=';
 const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
@@ -42,46 +44,46 @@ Current conversation context:`;
 
 const userContexts = new Map();
 
-// ✅ CLOUDFLARE FIX 1: सही event listener
-addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request));
-});
-
-async function handleRequest(request) {
-  console.log(`📥 Request: ${request.method} ${request.url}`);
-  
-  if (request.method === 'POST') {
-    try {
-      const update = await request.json();
-      console.log('📦 Update received');
-      
-      // ✅ CLOUDFLARE FIX 2: waitUntil के साथ process
-      event.waitUntil(processMessage(update));
-      return new Response('OK', { 
-        status: 200,
-        headers: { 'Content-Type': 'text/plain' }
-      });
-    } catch (error) {
-      console.error('❌ Error parsing JSON:', error);
-      return new Response('Error', { status: 500 });
+// ✅ ES MODULE EXPORT - यही main fix है
+export default {
+  async fetch(request, env, ctx) {
+    console.log(`📥 Request: ${request.method} ${request.url}`);
+    
+    if (request.method === 'POST') {
+      try {
+        const update = await request.json();
+        console.log('📦 Update received');
+        
+        // Process message asynchronously
+        ctx.waitUntil(processMessage(update));
+        return new Response('OK', { 
+          status: 200,
+          headers: { 'Content-Type': 'text/plain' }
+        });
+      } catch (error) {
+        console.error('❌ Error parsing JSON:', error);
+        return new Response('Error', { status: 500 });
+      }
     }
+    
+    // GET request - show bot is alive
+    return new Response(JSON.stringify({
+      name: "Saniya - Roastfull AI Girlfriend 🔥💕",
+      status: "Ready to roast & love!",
+      personality: "Sassy, Cute, Hinglish Queen",
+      endpoint: "https://saniya22.lanlantap110.workers.dev/",
+      message: "Send /start on Telegram to begin chatting!",
+      fix: "ES Module Format ✅"
+    }), {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
   }
-  
-  // GET request - show bot is alive
-  return new Response(JSON.stringify({
-    name: "Saniya - Roastfull AI Girlfriend 🔥💕",
-    status: "Ready to roast & love!",
-    personality: "Sassy, Cute, Hinglish Queen",
-    endpoint: "https://saniya22.lanlantap110.workers.dev/",
-    message: "Send /start on Telegram to begin chatting!"
-  }), {
-    headers: { 
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*'
-    }
-  });
-}
+};
 
+// ✅ सभी functions पहले की तरह ही रहेंगे
 async function processMessage(update) {
   try {
     console.log('🔄 Processing message...');
@@ -100,67 +102,55 @@ async function processMessage(update) {
     const messageText = text.trim();
     console.log(`👤 ${userName} (${userId}): ${messageText}`);
     
-    // ✅ CLOUDFLARE FIX 3: सभी async calls को handle करें
-    await Promise.all([
-      handleMessageProcessing(chatId, messageText, userId, userName),
-      sendTyping(chatId)
-    ]);
+    // Handle /start command first
+    if (messageText === '/start' || messageText === '/start@Saniya22Bot') {
+      const startMsg = `Hey ${userName}! I'm Saniya - your roastful AI girlfriend! 😏\n\nReady for some sassy chats? 🔥\n\nJust say "Hi" or chat normally with me!`;
+      await sendMessage(chatId, startMsg);
+      return;
+    }
+    
+    // Typing indicator
+    await sendTyping(chatId);
+    
+    // Natural delay
+    await sleep(1000 + Math.random() * 2000);
+    
+    // Priority 1: ABUSE CHECK
+    if (isHeavyAbuse(messageText)) {
+      const savageRoast = generateSavageRoast();
+      await sendMessage(chatId, savageRoast);
+      return;
+    }
+    
+    // Priority 2: MILD ROAST-WORTHY MESSAGES
+    if (isRoastWorthy(messageText)) {
+      const roastResponse = generateRoastResponse(messageText, userName);
+      await sendMessage(chatId, roastResponse);
+      return;
+    }
+    
+    // Priority 3: ROMANTIC/SWEET MESSAGES
+    if (isRomantic(messageText)) {
+      const romanticResponse = generateRomanticResponse(messageText, userName);
+      await sendMessage(chatId, romanticResponse);
+      return;
+    }
+    
+    // Priority 4: NORMAL MESSAGES - AI Response
+    try {
+      const aiResponse = await generateRoastfulAIResponse(messageText, userId, userName);
+      await sendMessage(chatId, aiResponse);
+      
+      // Update context
+      updateUserContext(userId, messageText, aiResponse);
+    } catch (error) {
+      console.error('❌ AI Response error:', error);
+      const fallback = getRoastfulFallback(messageText, userName);
+      await sendMessage(chatId, fallback);
+    }
     
   } catch (error) {
     console.error('❌ Error in processMessage:', error);
-  }
-}
-
-async function handleMessageProcessing(chatId, messageText, userId, userName) {
-  // Natural roastful delay
-  await sleep(1000 + Math.random() * 2000);
-  
-  // ✅ CLOUDFLARE FIX 4: Handle /start command properly
-  if (messageText === '/start' || messageText === '/start@Saniya22Bot') {
-    const startMsg = `Hey ${userName}! I'm Saniya - your roastful AI girlfriend! 😏\n\nReady for some sassy chats? 🔥\n\nJust say "Hi" or chat normally with me!`;
-    await sendMessage(chatId, startMsg);
-    return;
-  }
-  
-  // Priority 1: ABUSE CHECK
-  if (isHeavyAbuse(messageText)) {
-    const savageRoast = generateSavageRoast();
-    await sendMessage(chatId, savageRoast);
-    
-    // User ko thoda time do regret karne ka
-    setTimeout(async () => {
-      const followUp = getFollowUpRoast();
-      await sendMessage(chatId, followUp);
-    }, 3000);
-    
-    return;
-  }
-  
-  // Priority 2: MILD ROAST-WORTHY MESSAGES
-  if (isRoastWorthy(messageText)) {
-    const roastResponse = generateRoastResponse(messageText, userName);
-    await sendMessage(chatId, roastResponse);
-    return;
-  }
-  
-  // Priority 3: ROMANTIC/SWEET MESSAGES
-  if (isRomantic(messageText)) {
-    const romanticResponse = generateRomanticResponse(messageText, userName);
-    await sendMessage(chatId, romanticResponse);
-    return;
-  }
-  
-  // Priority 4: NORMAL MESSAGES - AI Response
-  try {
-    const aiResponse = await generateRoastfulAIResponse(messageText, userId, userName);
-    await sendMessage(chatId, aiResponse);
-    
-    // Update context
-    updateUserContext(userId, messageText, aiResponse);
-  } catch (error) {
-    console.error('❌ AI Response error:', error);
-    const fallback = getRoastfulFallback(messageText, userName);
-    await sendMessage(chatId, fallback);
   }
 }
 
@@ -441,7 +431,7 @@ async function sendMessage(chatId, text) {
   try {
     console.log(`📤 Sending to ${chatId}: ${text.substring(0, 50)}...`);
     
-    // ✅ CLOUDFLARE FIX 5: Duplicate parse_mode fix
+    // ✅ FIXED: Only one parse_mode
     const response = await fetch(`${TELEGRAM_API}/sendMessage`, {
       method: 'POST',
       headers: { 
@@ -451,7 +441,7 @@ async function sendMessage(chatId, text) {
       body: JSON.stringify({
         chat_id: chatId,
         text: text,
-        parse_mode: 'HTML'  // ✅ Fixed: Only one parse_mode
+        parse_mode: 'HTML'  // ✅ Fixed: Single parse_mode
       })
     });
     
