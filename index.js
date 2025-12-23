@@ -1,4 +1,4 @@
-const BOT_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN_HERE';
+const BOT_TOKEN = '8252082049:AAHSBJ0NLTnMQ_75LuLTdYUbbD8A9x2gPa4';
 const AI_API_URL = 'https://ai-2fghunkw.vercel.app/query?question=';
 const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
